@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ContentCraft — Login</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/script.js"></script>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<div class="auth-wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <span class="logo-text">ContentCraft</span>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to start creating content</p>
+    <div class="alert error" id="errorMsg"></div>
+    <div class="alert success" id="successMsg"></div>
+    <div class="field">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <input type="email" id="email" placeholder="you@example.com"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="password" placeholder="Enter your password"/>
+      </div>
+      <div class="forgot"><a href="#">Forgot password?</a></div>
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Sign In</button>
+    <div class="divider">or</div>
+    <div class="bottom-link">Don't have an account? <a href="register.html">Create one free</a></div>
+  </div>
+</div>
+
+<script src="/js/script.js"></script>
+<script>
+async function handleLogin(){
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  hideAlerts();
+  if(!email||!password){ showAlert('error','⚠️ Please fill in all fields.'); return; }
+  setLoading('loginBtn','Signing in...');
+  try{
+    const res  = await fetch(`${API}/api/auth/login`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password})
+    });
+    const data = await res.json();
+    if(res.ok){
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('name',  data.name);
+      showAlert('success','✅ Login successful! Redirecting...');
+      setTimeout(()=> window.location.href='index.html', 1200);
+    } else {
+      showAlert('error','❌ '+(data.error||'Login failed.'));
+    }
+  }catch{
+    showAlert('error','❌ Server error. Make sure Flask is running on port 5000.');
+  }finally{
+    clearLoading('loginBtn');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ContentCraft — History</title>
+<link rel="stylesheet" href="../css/style.css"/>
+<script src="../js/script.js"></script>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <span class="logo-text">ContentCraft</span>
+  </div>
+  <div class="nav-label">Menu</div>
+  <a class="nav-item" href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </a>
+  <a class="nav-item active" href="history.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    History
+  </a>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar" id="avatarLetter">U</div>
+      <div>
+        <div class="user-name" id="sidebarName">User</div>
+        <div class="user-plan">Free Plan</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">History</div>
+      <div class="page-sub">All your generated content</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterBy('all',this)">All</button>
+    <button class="filter-btn" onclick="filterBy('instagram',this)">Instagram</button>
+    <button class="filter-btn" onclick="filterBy('youtube',this)">YouTube</button>
+    <button class="filter-btn" onclick="filterBy('twitter',this)">Twitter</button>
+    <button class="filter-btn" onclick="filterBy('linkedin',this)">LinkedIn</button>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search topics..." oninput="searchHistory(this.value)" id="searchInput"/>
+    </div>
+  </div>
+
+  <div class="history-grid" id="historyGrid">
+    <div class="panel" id="skelCard">
+      <div class="skeleton" style="height:16px;width:55%;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:13px;width:100%;margin-bottom:7px;"></div>
+      <div class="skeleton" style="height:13px;width:75%;"></div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/script.js"></script>
+<script>
+let allHistory  = [];
+let activeFilter = 'all';
+
+window.onload = () => {
+  authGuard();
+  initSidebar();
+  loadHistory();
+};
+
+async function loadHistory(){
+  try{
+    const res  = await fetch(`${API}/api/content/history?user_id=${getUserId()}`);
+    const data = await res.json();
+    allHistory  = data.history || [];
+    renderHistory(allHistory);
+  }catch{
+    document.getElementById('historyGrid').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load</div><div class="empty-sub">Make sure Flask is running on port 5000</div></div>`;
+  }
+}
+
+function filterBy(platform, btn){
+  activeFilter = platform;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters(document.getElementById('searchInput').value.toLowerCase());
+}
+
+function searchHistory(q){ applyFilters(q.toLowerCase()); }
+
+function applyFilters(search){
+  let f = allHistory;
+  if(activeFilter !== 'all') f = f.filter(i=>i.platform===activeFilter);
+  if(search) f = f.filter(i=>(i.topic||'').toLowerCase().includes(search)||(i.output||'').toLowerCase().includes(search));
+  renderHistory(f);
+}
+</script>
+</body>
+</html>
